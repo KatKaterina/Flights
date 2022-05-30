@@ -1,9 +1,34 @@
 import React from 'react';
 import { Col, Form, InputGroup, FormControl } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+
+const renderCompaniesList = () => {
+  const { companiesPrices }= useSelector((state) => state.flights);
+  const listCompanies = Object.entries(companiesPrices);
+
+  return (
+    <div className="mb-3">
+      <span>Авиакомпании</span>
+      {listCompanies.map(([uid, prop]) => {
+        const { airlineCode, caption, amount, currency } = prop;
+        const label = `- ${caption} от ${amount} ${currency}`;
+        return (
+          <Form.Check
+            type="checkbox" 
+            name="filterCompany" 
+            label={label}
+            id={uid}
+            key={uid}
+            />
+        );
+      })}
+    </div> 
+  );
+};
 
 const FormFilters = () => {
   return (
-    <Form>
+    <Form className="mr-5">
       <div className="mb-3">
         <span>Сортировать</span>
         <Form.Check type="radio" name="sort" label="по возрастанию цены" id="priceUp" />
@@ -26,11 +51,7 @@ const FormFilters = () => {
           <FormControl type="number" />
         </InputGroup>
       </div>
-      <div className="mb-3">
-        <span>Авиакомпании</span>
-        <Form.Check type="checkbox" name="filterCompany" label="Токийские авиалинии" id="Tokyo" />
-        <Form.Check type="checkbox" name="filterCompany" label="Ирландские авиалинии" id="Dublin" />
-      </div>
+      {renderCompaniesList()}
     </Form>
   );
 };
@@ -43,6 +64,6 @@ const Filters = () => {
       </div>
     </Col>
   );
-}
+};
 
 export default Filters;
