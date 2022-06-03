@@ -6,7 +6,6 @@ import store from './slices/index.js';
 export default () => {
   return (
     <Provider store={store}>
-      {console.log('1')}
     <App />
   </Provider>
   );

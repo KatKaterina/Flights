@@ -1,91 +1,175 @@
-import React, { useState } from 'react';
-import { Col, Container, Row, Button } from 'react-bootstrap';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import {
+  Col,
+  Container,
+  Row, Button,
+} from 'react-bootstrap';
+import { useSelector } from 'react-redux';
 
 const Flight = ({ legs }) => {
+  const lengthLegs = legs.length;
   return (
     <div>
-      {legs.map((leg) => {
-        const { id, viewDuration, countTransfer, airline, departureCity, departureAirport, departureDate, arrivalCity, arrivalAirport, arrivalDate } = leg; 
-        const transfer = countTransfer !== 0 ? `${countTransfer} пересадка` : '';
+      {legs.map((leg, i) => {
+        const {
+          id,
+          viewDuration,
+          countTransfers,
+          airline,
+          departureCity,
+          departureAirport,
+          departureDateView,
+          arrivalCity,
+          arrivalAirport,
+          arrivalDateView,
+        } = leg;
+        const transfer = countTransfers !== 0 ? `${countTransfers} пересадка` : '';
         const line = `${airline.airlineCode} ${airline.caption}`;
         return (
           <div key={id}>
             <Row className="border-bottom p-2">
-              <span>{`${departureCity.caption}, ${departureAirport.caption} (${departureAirport.uid}) ->  ${arrivalCity.caption}, ${arrivalAirport.caption} (${arrivalAirport.uid})`}</span>
+              <div>
+                <span>
+                  {`${departureCity.caption}, ${departureAirport.caption}`}
+                </span>
+                <span className="text-primary">
+                  {` (${departureAirport.uid})`} → 
+                </span>
+                <span>
+                  {`${arrivalCity.caption}, ${arrivalAirport.caption}`}
+                </span>
+                <span className="text-primary">
+                  {` (${arrivalAirport.uid})`}
+                </span>
+              </div>
             </Row>
             <Row className="p-1">
-              <Col className="text-start"><span>Дата/время вылета</span></Col>
-              <Col className="text-center"><span>{viewDuration}</span></Col>
-              <Col className="text-end"><span>Дата/время прилета</span></Col>
+              <Col className="text-start">
+                <span className="fs-5">
+                  {departureDateView.timeView}
+                </span>
+                <span className="text-primary">
+                  {departureDateView.dateView}
+                </span>
+              </Col>
+              <Col className="text-center">
+                <span className="fs-5">
+                  🕔 {viewDuration}
+                </span>
+              </Col>
+              <Col className="text-end">
+                <span span className="fs-5">
+                  {arrivalDateView.timeView}
+                </span>
+                <span className="text-primary">
+                  {arrivalDateView.dateView}
+                </span>
+              </Col>
             </Row>
             <Row className="p-1">
-              <span className="text-center">_________________________{transfer}_________________________</span>
+              <div className="text-center">
+                <span>_________________________</span>
+                <span className="f-color-orange">{transfer}</span>
+                <span>_________________________</span>
+              </div>
             </Row>
-            <Row className="p-1">
+            <Row className="p-1 fsize-14">
               <span>{`Рейс выполняет: ${line}`}</span>
             </Row>
-            <Row className="border-bottom border-3 border-primary">
-            </Row>
-          </div> 
-        )
-     })}
-   </div>
-  )
-};
-
-const CardFlight = () => {
-  const [countShow, setCountShow] = useState(0);
-  const { allFlights } = useSelector((state) => state.flights);
-  console.log(allFlights.length);
-  if (allFlights.length === 0) {
-    return null;
-  }
-  const showFlights = [...[allFlights[countShow]], ...[allFlights[countShow + 1]]];
-  return (
-    <div>
-      {showFlights.map(({ id, carrier, amount, currency, legsFlight }) => {
-        return (
-          <React.Fragment key={id}>
-          <Row className="bg-primary text-white flex-md-row">
-          <Col>
-            <span>логотип</span>
-          </Col>
-          <Col md="auto">
-            <Row>
-              <span className="text-end">{`${amount} ₽`}</span>
-            </Row>
-            <Row>
-              <span className="text-end">Стоимость для одного взрослого пассажира</span>
-            </Row>
-          </Col>
-        </Row>
-        <Flight legs={legsFlight} />
-        <Row className="pb-2">
-          <Button variant="warning" size="sm" className="text-light">ВЫБРАТЬ</Button>
-        </Row>
-        </React.Fragment>
+            <Row className={i !== lengthLegs - 1 ? 'separator' : ''} />
+          </div>
         );
       })}
     </div>
   );
 };
 
-const Flights = () => {
+const CardFlight = () => {
+  const step = 2;
+  const [countShowFlights, setCountShowFlights] = useState(step);
+
+  useEffect(() => {}, [countShowFlights]);
+
+  const { sortFlights } = useSelector((state) => state.flights);
+  const lengthSortFlights = sortFlights.length;
+
+  useEffect(() => {setCountShowFlights(step)}, [sortFlights]);
+
+  const { loading } = useSelector((state) => state.flights);
+  if (loading === 'loading') {
+    return (
+      <div className="text-center">
+        <span>Идет загрузка данных</span>
+      </div>
+    );
+  }
+  if (loading === 'failed') {
+    return (
+      <div className="text-center">
+        <span>Не удалось выполнить запрос</span>
+      </div>
+    );
+  }
+
+  if (lengthSortFlights === 0) {
+    return (
+      <div className="text-center">
+        <span>Подходящих рейсов не найдено</span>
+      </div>
+    );
+  }
+
+  const count = Math.min(countShowFlights, lengthSortFlights);
+  const showFlights = sortFlights.slice(0, count);
+
+  const handleClick = () => {
+    setCountShowFlights(countShowFlights + step);
+  };
+
   return (
-    <Col className="h-100 p-0">
-     <Container>
-        <CardFlight />
-        <div className="d-flex justify-content-center">
-            <Button variant="outline-dark" size="sm">Показать еще</Button>
-        </div>
-      </Container>
-    </Col>
+    <>
+      <div>
+        {showFlights.map(({ id, amount, legsFlight }) => (
+          <React.Fragment key={id}>
+            <Row className="bg-color-blue text-white flex-md-row lh-normal">
+              <Col>
+                <div>
+                  <span>логотип</span>
+                </div>
+              </Col>
+              <Col md="auto">
+                <Row>
+                  <span className="text-end fs-5">{`${amount} ₽`}</span>
+                </Row>
+                <Row>
+                  <div>
+                    <span className="text-end fsize-9">
+                      Стоимость для одного взрослого пассажира
+                    </span>
+                  </div>
+                </Row>
+              </Col>
+            </Row>
+            <Flight legs={legsFlight} />
+            <Row className="pb-4">
+              <button type="button" className="text-light bg-color-orange no-border">ВЫБРАТЬ</button>
+            </Row>
+          </React.Fragment>
+        ))}
+      </div>
+      <div className="d-flex justify-content-center">
+        { count < lengthSortFlights ? <Button variant="outline-dark" size="sm" onClick={handleClick}>Показать еще</Button> : null }
+      </div>
+    </>
   );
 };
 
+const Flights = () => (
+  <Col className="h-100 p-0">
+    <Container>
+      <CardFlight />
+    </Container>
+  </Col>
+);
+
 export default Flights;
-
-//<div className="d-flex flex-column h-100"></div>
-
-//<div className="bg-primary text-white">

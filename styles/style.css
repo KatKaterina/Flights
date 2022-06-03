@@ -1,0 +1,42 @@
+.fsize-10 {
+  font-size: 14px;
+}
+.fsize-12 {
+  font-size: 12px;
+}
+
+.fsize-14 {
+    font-size: 14px;
+  }
+
+.fsize-9 {
+  font-size: 9px;
+}
+
+.f-bold {
+  font-weight: bold;
+}
+
+.f-color-orange {
+  color: #ffb168;
+}
+
+.bg-color-blue {
+  background-color: #0087c9;
+}
+
+.bg-color-orange {
+  background-color: #ffb168;
+}
+
+.separator {
+  border-bottom: 3px solid #0087c9;
+}
+
+.no-border {
+  border: 0;
+}
+
+.lh-normal {
+  line-height: normal;
+}

@@ -1,69 +1,134 @@
 import React from 'react';
-import { Col, Form, InputGroup, FormControl } from 'react-bootstrap';
+import { Col, Form } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
+import {
+  sortFlights,
+  addFilter,
+  deleteFilter,
+  updateFilters,
+} from '../slices/FlightsSlice.js';
 
-const renderCompaniesList = () => {
-  const { companiesPrices }= useSelector((state) => state.flights);
-  const listCompanies = Object.entries(companiesPrices);
+const Sort = ({ handleChange }) => (
+  <div className="mb-3">
+    <div className="pb-2">
+      <span className="f-bold">Сортировать</span>
+    </div>
+    <Form.Check type="radio" name="sort" label="по возрастанию цены" id="priceUp" value="priceUp" onChange={handleChange} />
+    <Form.Check type="radio" name="sort" label="по убыванию цены" id="priceDown" value="priceDown" onChange={handleChange} />
+    <Form.Check type="radio" name="sort" label="по времени в пути" id="time" value="time" onChange={handleChange} />
+  </div>
+);
 
+const CompaniesFilter = ({ handleChange, companies }) => {
+  const listCompanies = Object.entries(companies);
   return (
     <div className="mb-3">
-      <span>Авиакомпании</span>
+      <div className="pb-2">
+        <span className="f-bold">Авиакомпании</span>
+      </div>
       {listCompanies.map(([uid, prop]) => {
-        const { airlineCode, caption, amount, currency } = prop;
+        const {
+          caption,
+          amount,
+          currency,
+          active,
+        } = prop;
         const label = `- ${caption} от ${amount} ${currency}`;
         return (
           <Form.Check
-            type="checkbox" 
-            name="filterCompany" 
+            type="checkbox"
+            name="filterCompany"
             label={label}
-            id={uid}
+            onChange={handleChange}
+            value={uid}
             key={uid}
-            />
+            disabled={!active}
+            className="text-truncate"
+          />
         );
       })}
-    </div> 
+    </div>
   );
 };
 
+const TransferFilter = ({ handleChange, transfers }) => (
+  <div className="mb-3">
+    <div className="pb-2">
+      <span className="f-bold">Фильтровать</span>
+    </div>
+    {transfers.map(({ value, active }) => {
+      const count = value === 0 ? 'без' : value;
+      const label = value === 1 ? '1 пересадка'
+        : (value >= 4 || value === 0) ? `${count} пересадок`
+                                      : `${count} пересадки`;
+      return (
+        <Form.Check
+          type="checkbox"
+          name="filterTransfer"
+          label={label}
+          onChange={handleChange}
+          value={value}
+          key={value}
+          disabled={!active}
+        />
+      );
+    })}
+  </div>
+);
+
+const PriceFilter = ({ handleChange }) => (
+  <div className="mb-3">
+    <div className="pb-2">
+      <span className="f-bold">Цена</span>
+    </div>
+    <div className="mb-3">
+      <label htmlFor="filterPriceMin"><span>От </span></label>
+      <input type="number" name="filterPriceMin" onChange={handleChange} id="filterPriceMin" />
+    </div>
+    <div className="mb-3">
+      <label htmlFor="filterPriceMax">До</label>
+      <input type="number" name="filterPriceMax" onChange={handleChange} id="filterPriceMax" />
+    </div>
+  </div>
+);
+
 const FormFilters = () => {
+  const { valuesFilters } = useSelector((state) => state.flights);
+  const { filterTransfer, filterCompany } = valuesFilters;
+
+  const dispatch = useDispatch();
+
+  const handleChangeSort = (e) => {
+    dispatch(sortFlights(e.target.value));
+  };
+
+  const handleChangeFilter = (e) => {
+    const { name, checked, value } = e.target;
+    if (checked || name === 'filterPriceMin' || name === 'filterPriceMax') {
+      dispatch(addFilter({ name, value }));
+    } else {
+      dispatch(deleteFilter({ name, value }));
+    }
+    const exceptFilter = name;
+    dispatch(updateFilters(exceptFilter));
+  };
+
   return (
     <Form className="mr-5">
-      <div className="mb-3">
-        <span>Сортировать</span>
-        <Form.Check type="radio" name="sort" label="по возрастанию цены" id="priceUp" />
-        <Form.Check type="radio" name="sort" label="по убыванию цены" id="priceDown" />
-        <Form.Check type="radio" name="sort" label="по времени в пути" id="time" />
-      </div>
-      <div className="mb-3">
-        <span>Фильтровать</span>
-        <Form.Check type="checkbox" name="filterTransfer" label="1 пересадка" id="oneTransfer" />
-        <Form.Check type="checkbox" name="filterTransfer" label="без пересадок" id="noTransfer" />
-      </div>
-      <div className="mb-3">
-        <span>Цена</span>
-        <InputGroup className="mb-3" size="sm">
-          <InputGroup.Text>От</InputGroup.Text>
-          <FormControl type="number" />
-        </InputGroup>
-        <InputGroup className="mb-3" size="sm">
-          <InputGroup.Text>До</InputGroup.Text>
-          <FormControl type="number" />
-        </InputGroup>
-      </div>
-      {renderCompaniesList()}
+      <Sort handleChange={handleChangeSort} />
+      <TransferFilter handleChange={handleChangeFilter} transfers={filterTransfer} />
+      <PriceFilter handleChange={handleChangeFilter} />
+      <CompaniesFilter handleChange={handleChangeFilter} companies={filterCompany} />
     </Form>
   );
 };
 
-const Filters = () => {
-  return (
-    <Col md="auto" className="px-0 bg-light h-100">
-      <div className="d-flex justify-content-around">
-        <FormFilters />
-      </div>
-    </Col>
-  );
-};
+const Filters = () => (
+  <Col md="auto" className="px-0 h-100 fsize-12">
+    <div className="d-flex justify-content-around">
+      <FormFilters />
+    </div>
+  </Col>
+);
 
 export default Filters;
