@@ -219,7 +219,8 @@ const getFlights = (data) => {
     if (isValidData(flight)) {
       flightsList.push(flight);
     } else {
-      console.log(flight);
+      console.log('no valid');
+      console.log(el);
     }
   });
 
