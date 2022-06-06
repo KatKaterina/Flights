@@ -23,7 +23,10 @@ const Flight = ({ legs }) => {
           arrivalAirport,
           arrivalDateView,
         } = leg;
-        const transfer = countTransfers !== 0 ? `${countTransfers} пересадка` : '';
+        const valueTransfer = countTransfers === 1 ? '1 пересадка'
+        : (countTransfers >= 4) ? `${countTransfers} пересадок`
+                                      : `${countTransfers} пересадки`;
+        const transfer = countTransfers !== 0 ? valueTransfer : '';
         const line = `${airline.airlineCode} ${airline.caption}`;
         return (
           <div key={id}>
@@ -48,6 +51,7 @@ const Flight = ({ legs }) => {
                 <span className="fs-5">
                   {departureDateView.timeView}
                 </span>
+                <span> </span>
                 <span className="text-primary">
                   {departureDateView.dateView}
                 </span>
@@ -58,20 +62,19 @@ const Flight = ({ legs }) => {
                 </span>
               </Col>
               <Col className="text-end">
-                <span span className="fs-5">
-                  {arrivalDateView.timeView}
-                </span>
                 <span className="text-primary">
                   {arrivalDateView.dateView}
+                </span>
+                <span> </span>
+                <span span className="fs-5">
+                  {arrivalDateView.timeView}
                 </span>
               </Col>
             </Row>
             <Row className="p-1">
-              <div className="text-center">
-                <span>_________________________</span>
-                <span className="f-color-orange">{transfer}</span>
-                <span>_________________________</span>
-              </div>
+              <Col className="border-bottom"/>
+              <Col className="text-center"><span className="f-color-orange">{transfer}</span></Col>
+              <Col className="border-bottom"/>  
             </Row>
             <Row className="p-1 fsize-14">
               <span>{`Рейс выполняет: ${line}`}</span>
